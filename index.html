@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BADAI: Kronologi &amp; Simulasi Atmosfer — Dokumentasi Interaktif Kelompok 7</title>
+  <!-- Leaflet (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="js/tailwind-config.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-abyss-950 text-slate-200 antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="fixed top-0 inset-x-0 z-50 border-b border-sky-400/15 bg-abyss-950/85 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <!-- Brand / Documentary Title -->
+      <a href="#chapter-01" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center relative overflow-hidden">
+          <svg class="w-5 h-5 text-sky-400 group-hover:rotate-90 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3a9 9 0 0 1 9 9c0 3.5-2.5 6-6 6H9a4 4 0 0 1 0-8h6" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2" fill="currentColor"/>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] tracking-widest uppercase text-sky-400">MET-ARCHIVE // K7</span>
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+          </div>
+          <p class="text-xs sm:text-sm font-bold tracking-tight text-white">BADAI: KRONOLOGI &amp; SIMULASI</p>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden lg:flex items-center gap-1 bg-abyss-900/80 border border-slate-800/90 rounded-full px-2 py-1">
+        <a href="#chapter-01" data-nav="chapter-01" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-sky-300 bg-sky-500/15 transition">01. Fenomena</a>
+        <a href="#chapter-02" data-nav="chapter-02" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white transition">02. Simulasi Badai</a>
+        <a href="#chapter-03" data-nav="chapter-03" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white transition">03. Peta Interaktif</a>
+        <a href="#chapter-04" data-nav="chapter-04" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white transition">04. Berita</a>
+        <a href="#chapter-05" data-nav="chapter-05" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white transition">05. Dampak &amp; Ekologi</a>
+        <a href="#chapter-06" data-nav="chapter-06" class="nav-pill px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-400 hover:text-white transition">06. Mitigasi</a>
+      </nav>
+
+      <!-- Live Telemetry Status Pill & Mobile Menu Toggle -->
+      <div class="flex items-center gap-2.5">
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-abyss-900 border border-amber-500/25 font-mono text-[11px] text-amber-300">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <span>SST THRESHOLD &gt; 26.5°C</span>
+        </div>
+        <button id="mobile-menu-btn" aria-label="Buka Menu Navigasi" class="lg:hidden p-2.5 rounded-xl bg-abyss-900 border border-slate-700/70 text-slate-300 hover:text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ BAR CUACA LOKASI SAYA (ikut menempel saat scroll) ============ -->
+    <div id="weather-bar" class="border-t border-sky-400/10 bg-abyss-900/75">
+      <div id="wx-row" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-11 flex items-center gap-3.5 overflow-x-auto whitespace-nowrap font-mono text-[11px] text-slate-300">
+        <span class="wx-chip text-sky-300" title="Lokasi terdeteksi">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <b id="wx-loc" class="font-semibold text-white wx-loading">Mendeteksi lokasi…</b>
+        </span>
+        <span class="wx-sep"></span>
+        <span class="wx-chip"><span id="wx-icon" class="text-base leading-none">⛅</span><b id="wx-temp" class="text-amber-300 text-sm">--°C</b><span id="wx-desc" class="text-slate-200">memuat…</span></span>
+        <span class="wx-sep"></span>
+        <span class="wx-chip" title="Kelembapan udara">💧 <b id="wx-hu" class="text-sky-300">--</b>%</span>
+        <span class="wx-chip" title="Kecepatan &amp; arah angin">💨 <b id="wx-ws" class="text-sky-300">--</b> km/j <span id="wx-wd" class="text-slate-400"></span></span>
+        <span class="wx-sep hidden md:block"></span>
+        <span id="wx-src" class="wx-chip hidden md:inline-flex text-slate-500"></span>
+        <div class="ml-auto flex items-center gap-1.5 pl-2 shrink-0">
+          <button id="wx-toggle" type="button" aria-expanded="false" class="px-2.5 py-1 rounded-lg bg-abyss-950 hover:bg-abyss-800 border border-slate-700 text-sky-300 transition">Prakiraan ▾</button>
+          <button id="wx-refresh" type="button" aria-label="Perbarui cuaca" title="Perbarui / deteksi ulang lokasi" class="w-7 h-7 rounded-lg bg-abyss-950 hover:bg-abyss-800 border border-slate-700 text-slate-300 transition">↻</button>
+        </div>
+      </div>
+
+      <!-- Panel prakiraan (buka/tutup) -->
+      <div id="wx-panel" class="hidden border-t border-slate-800/80 bg-abyss-950/90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
+          <div id="wx-forecast" class="flex gap-2 overflow-x-auto pb-1"></div>
+          <div class="flex flex-wrap items-center gap-2 font-mono text-[11px]">
+            <form id="wx-search-form" class="flex items-center gap-2 flex-1 min-w-[220px]">
+              <input id="wx-search-input" type="text" autocomplete="off" placeholder="Ganti lokasi (mis. Surabaya, Bandung, Magelang)…" class="flex-1 min-w-0 rounded-lg bg-abyss-900 border border-slate-700 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-400/60" />
+              <button type="submit" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-abyss-950 font-bold transition">Cari</button>
+              <button id="wx-gps-btn" type="button" class="px-3 py-1.5 rounded-lg bg-abyss-900 hover:bg-abyss-800 border border-slate-700 text-sky-300 transition">📍 Lokasi saya</button>
+            </form>
+            <span id="wx-status" class="text-slate-500"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Navigation -->
+    <div id="mobile-menu" class="hidden lg:hidden border-t border-slate-800 bg-abyss-950/95 px-4 py-3 space-y-1.5">
+      <a href="#chapter-01" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-sky-300 bg-sky-500/10">01 / Fenomena Atmosfer</a>
+      <a href="#chapter-02" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-abyss-800">02 / Simulasi Terjadinya Badai</a>
+      <a href="#chapter-03" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-abyss-800">03 / Peta Lokasi Badai Terkini &amp; Historis</a>
+      <a href="#chapter-04" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-abyss-800">04 / Berita Badai Indonesia &amp; Dunia</a>
+      <a href="#chapter-05" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-abyss-800">05 / Dampak &amp; Penyembuh Global</a>
+      <a href="#chapter-06" class="mobile-nav-link block px-3 py-2.5 rounded-xl text-sm font-medium text-slate-300 hover:bg-abyss-800">06 / Mitigasi &amp; Penanggulangan</a>
+    </div>
+  </header>
+
+  <!-- FLOATING CHAPTER INDICATOR (RIGHT RAIL) -->
+  <aside aria-label="Indikator Bab Dokumenter" class="fixed right-3 sm:right-5 top-1/2 -translate-y-1/2 z-40 hidden md:flex flex-col items-end gap-3">
+    <a href="#chapter-01" data-dot="chapter-01" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">01 Fenomena</span>
+      <span class="dot-bar w-2.5 h-7 rounded-full bg-sky-400 shadow-[0_0_10px_#38bdf8] transition-all"></span>
+    </a>
+    <a href="#chapter-02" data-dot="chapter-02" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">02 Simulasi</span>
+      <span class="dot-bar w-2 h-3 rounded-full bg-slate-600 group-hover:bg-sky-300 transition-all"></span>
+    </a>
+    <a href="#chapter-03" data-dot="chapter-03" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">03 Peta Badai</span>
+      <span class="dot-bar w-2 h-3 rounded-full bg-slate-600 group-hover:bg-sky-300 transition-all"></span>
+    </a>
+    <a href="#chapter-04" data-dot="chapter-04" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">04 Berita</span>
+      <span class="dot-bar w-2 h-3 rounded-full bg-slate-600 group-hover:bg-sky-300 transition-all"></span>
+    </a>
+    <a href="#chapter-05" data-dot="chapter-05" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">05 Ekologi</span>
+      <span class="dot-bar w-2 h-3 rounded-full bg-slate-600 group-hover:bg-sky-300 transition-all"></span>
+    </a>
+    <a href="#chapter-06" data-dot="chapter-06" class="chapter-dot group flex items-center gap-2.5">
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity font-mono text-[10px] tracking-wider uppercase px-2 py-1 rounded bg-abyss-900/95 border border-sky-400/25 text-sky-300">06 Mitigasi</span>
+      <span class="dot-bar w-2 h-3 rounded-full bg-slate-600 group-hover:bg-sky-300 transition-all"></span>
+    </a>
+  </aside>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 01: HERO & EDITORIAL INTRODUCTION                             -->
+  <!-- ===================================================================== -->
+  <section id="chapter-01" class="chapter-section relative min-h-screen pt-36 pb-20 flex flex-col justify-between overflow-hidden border-b border-slate-800/80">
+    <!-- Animated HTML5 Canvas Storm Background -->
+    <canvas id="hero-storm-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-0"></canvas>
+    <!-- Atmospheric Radial Vignette -->
+    <div class="absolute inset-0 bg-gradient-to-b from-abyss-950/55 via-abyss-950/65 to-abyss-950 z-0 pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      <!-- Top Telemetry Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-8 border-b border-sky-400/15 font-mono text-xs text-slate-400">
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 rounded-md bg-sky-500/15 text-sky-300 border border-sky-400/30 font-semibold">01 / FENOMENA ATMOSFER</span>
+          <span class="hidden sm:inline text-slate-500">|</span>
+          <span class="text-slate-300">ARSIP METEOROLOGI &amp; DINAMIKA SIKLON</span>
+        </div>
+        <div class="flex items-center gap-4 text-[11px]">
+          <span>LAT <strong class="text-sky-300">06°57'S</strong> LON <strong class="text-sky-300">107°45'E</strong></span>
+          <span class="hidden md:inline text-amber-400">BARO: 870–1013 hPa</span>
+        </div>
+      </div>
+
+      <!-- Main Hero Editorial Grid -->
+      <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-center mt-10 sm:mt-14">
+        <div class="lg:col-span-7 space-y-6">
+          <div class="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-abyss-900/90 border border-sky-400/25 text-xs font-mono text-sky-300">
+            <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+            <span>An Interactive Meteorological Documentary — Kelompok 7</span>
+          </div>
+
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-[1.08]">
+            BADAI: <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-300 via-cyan-300 to-amber-300">KEKUATAN &amp; KESEIMBANGAN</span> ATMOSFER
+          </h1>
+
+          <!-- Meteorological Definition Card -->
+          <div class="glass-panel rounded-2xl p-5 sm:p-6 border-l-4 border-l-sky-400">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-[11px] uppercase tracking-widest text-sky-400">Definisi Meteorologis</span>
+              <span class="font-mono text-[11px] text-slate-400">BMKG / WMO STANDARD</span>
+            </div>
+            <p class="text-base sm:text-lg text-slate-100 leading-relaxed font-normal">
+              “Secara meteorologis, <strong class="text-sky-300 font-semibold">badai</strong> adalah gangguan cuaca ekstrem pada atmosfer yang ditandai oleh <strong class="text-amber-300 font-semibold">angin kencang destruktif</strong>, <strong class="text-sky-300 font-semibold">perubahan tekanan udara yang drastis</strong>, dan biasanya disertai <strong class="text-cyan-300 font-semibold">presipitasi (jatuhan air)</strong> yang lebat.”
+            </p>
+          </div>
+
+          <!-- Primary CTA Buttons -->
+          <div class="flex flex-wrap items-center gap-3.5 pt-2">
+            <a href="#chapter-02" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-abyss-950 font-bold text-sm shadow-lg shadow-sky-500/25 transition flex items-center gap-2">
+              <span>Jalankan Simulasi Atmosfer</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+            </a>
+            <a href="#chapter-03" class="px-6 py-3.5 rounded-xl bg-abyss-900/90 hover:bg-abyss-800 border border-sky-400/30 text-sky-200 font-semibold text-sm transition flex items-center gap-2">
+              <span>Jelajahi Peta Badai</span>
+              <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive 4-Factor Cause Explorer -->
+        <div class="lg:col-span-5">
+          <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span class="font-mono text-[10px] uppercase tracking-widest text-amber-400">Eksplorasi Kausalitas</span>
+                <h2 class="text-lg font-bold text-white">4 Faktor Utama Penyebab Badai</h2>
+              </div>
+              <span class="font-mono text-xs px-2.5 py-1 rounded-lg bg-abyss-950 border border-slate-800 text-sky-300" id="factor-counter">01 / 04</span>
+            </div>
+
+            <!-- 4 Factor Selector Buttons -->
+            <div class="grid grid-cols-2 gap-2" id="factor-buttons">
+              <button data-factor="0" class="factor-tab text-left p-3 rounded-xl border border-sky-400/50 bg-sky-500/15 transition">
+                <div class="font-mono text-[10px] text-sky-300">FAKTOR 01</div>
+                <div class="text-xs sm:text-sm font-bold text-white mt-0.5">Suhu Laut &gt; 26.5°C</div>
+              </button>
+              <button data-factor="1" class="factor-tab text-left p-3 rounded-xl border border-slate-800 bg-abyss-950/60 hover:border-slate-700 transition">
+                <div class="font-mono text-[10px] text-slate-400">FAKTOR 02</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-200 mt-0.5">Perubahan Atmosfer</div>
+              </button>
+              <button data-factor="2" class="factor-tab text-left p-3 rounded-xl border border-slate-800 bg-abyss-950/60 hover:border-slate-700 transition">
+                <div class="font-mono text-[10px] text-slate-400">FAKTOR 03</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-200 mt-0.5">Kelembapan Troposfer</div>
+              </button>
+              <button data-factor="3" class="factor-tab text-left p-3 rounded-xl border border-slate-800 bg-abyss-950/60 hover:border-slate-700 transition">
+                <div class="font-mono text-[10px] text-slate-400">FAKTOR 04</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-200 mt-0.5">Gaya Coriolis (500 km)</div>
+              </button>
+            </div>
+
+            <!-- Active Factor Detail Panel -->
+            <div id="factor-detail-box" class="rounded-xl bg-abyss-950/90 border border-slate-800/90 p-4 sm:p-5 space-y-3">
+              <div class="flex items-center justify-between gap-2">
+                <span id="factor-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-amber-500/15 text-amber-300 border border-amber-400/30">TERMODINAMIKA LAUT</span>
+                <span id="factor-metric" class="font-mono text-xs font-bold text-sky-400">SST &gt; 26.5°C</span>
+              </div>
+              <h3 id="factor-title" class="text-base sm:text-lg font-bold text-white">1. Tingginya Suhu Permukaan Air Laut</h3>
+              <p id="factor-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Penyebab paling umum terjadinya badai adalah tingginya suhu permukaan air laut (&gt; 26.5°C). Kontras antara permukaan laut hangat dan suhu air di lapisan bawah memicu penguapan masif dan udara lembab naik secara vertikal sebagai bahan bakar utama siklon.
+              </p>
+              <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <span id="factor-formula">Q_latent = L_v · Δq (Panas Laten)</span>
+                <a href="#chapter-02" class="text-sky-400 hover:underline">Uji di Simulasi →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Scroll Cue -->
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-12">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="rounded-xl bg-abyss-900/70 border border-slate-800/80 px-4 py-3">
+          <div class="font-mono text-[10px] text-slate-400 uppercase">Ambang Suhu Laut</div>
+          <div class="font-mono text-lg font-bold text-amber-400">&gt; 26.5 °C</div>
+        </div>
+        <div class="rounded-xl bg-abyss-900/70 border border-slate-800/80 px-4 py-3">
+          <div class="font-mono text-[10px] text-slate-400 uppercase">Kecepatan Angin Badai</div>
+          <div class="font-mono text-lg font-bold text-sky-400">250–305 km/j</div>
+        </div>
+        <div class="rounded-xl bg-abyss-900/70 border border-slate-800/80 px-4 py-3">
+          <div class="font-mono text-[10px] text-slate-400 uppercase">Ketinggian Konveksi</div>
+          <div class="font-mono text-lg font-bold text-cyan-300">~5 km Troposfer</div>
+        </div>
+        <div class="rounded-xl bg-abyss-900/70 border border-slate-800/80 px-4 py-3">
+          <div class="font-mono text-[10px] text-slate-400 uppercase">Jarak Minimal Coriolis</div>
+          <div class="font-mono text-lg font-bold text-emerald-400">≥ 500 km Ekuator</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 02: INTERACTIVE STORM FORMATION SIMULATION                    -->
+  <!-- ===================================================================== -->
+  <section id="chapter-02" class="chapter-section py-20 sm:py-24 border-b border-slate-800/80 telemetry-grid-bg relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Chapter Header -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+        <div>
+          <div class="font-mono text-xs tracking-widest uppercase text-sky-400 mb-2">02 / SIMULASI TERJADINYA BADAI</div>
+          <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Laboratorium Pembentukan Badai &amp; Siklon</h2>
+          <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
+            Atur parameter suhu permukaan laut, kelembapan troposfer, dan jarak dari khatulistiwa (efek Coriolis) atau pilih tahapan preset untuk mengamati bagaimana energi panas laut berubah menjadi pusaran badai.
+          </p>
+        </div>
+
+        <!-- View Mode Toggle & Optional Audio Synth -->
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="inline-flex rounded-xl bg-abyss-900 p-1 border border-slate-800" role="group" aria-label="Mode Tampilan Simulasi">
+            <button id="view-cross-btn" class="px-3.5 py-2 rounded-lg text-xs font-semibold bg-sky-500 text-abyss-950 shadow transition">
+              Penampang Vertikal
+            </button>
+            <button id="view-radar-btn" class="px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+              Radar Satelit (Top-Down)
+            </button>
+          </div>
+
+          <button id="audio-toggle-btn" class="px-3.5 py-2.5 rounded-xl bg-abyss-900 border border-slate-800 hover:border-sky-400/40 text-xs font-mono text-slate-300 flex items-center gap-2 transition" title="Aktifkan/Matikan Efek Suara Angin Sintetis">
+            <span id="audio-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+            <span id="audio-label">Audio Angin: OFF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 5 One-Click Stage Presets -->
+      <div class="mb-6">
+        <div class="font-mono text-[11px] uppercase tracking-wider text-slate-400 mb-2.5">Pilih Preset Tahapan Pembentukan Badai (1-Klik):</div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5" id="preset-buttons">
+          <button data-preset="stage1" class="preset-btn text-left p-3 rounded-xl bg-abyss-900/90 border border-slate-800 hover:border-amber-400/50 transition">
+            <div class="font-mono text-[10px] text-amber-400">TAHAP 01</div>
+            <div class="text-xs font-bold text-white mt-0.5">Air Laut Hangat (&gt; 26.5°C)</div>
+          </button>
+          <button data-preset="stage2" class="preset-btn text-left p-3 rounded-xl bg-abyss-900/90 border border-slate-800 hover:border-sky-400/50 transition">
+            <div class="font-mono text-[10px] text-sky-400">TAHAP 02</div>
+            <div class="text-xs font-bold text-white mt-0.5">Udara Naik &amp; Badai Petir</div>
+          </button>
+          <button data-preset="stage3" class="preset-btn text-left p-3 rounded-xl bg-abyss-900/90 border border-slate-800 hover:border-cyan-400/50 transition">
+            <div class="font-mono text-[10px] text-cyan-400">TAHAP 03</div>
+            <div class="text-xs font-bold text-white mt-0.5">Efek Coriolis &amp; Tekanan Rendah</div>
+          </button>
+          <button data-preset="stage4" class="preset-btn text-left p-3 rounded-xl bg-sky-500/15 border border-sky-400/60 transition">
+            <div class="font-mono text-[10px] text-sky-300">TAHAP 04</div>
+            <div class="text-xs font-bold text-white mt-0.5">Hurikan / Super Topan (Mata Badai)</div>
+          </button>
+          <button data-preset="rancaekek" class="preset-btn col-span-2 sm:col-span-1 text-left p-3 rounded-xl bg-abyss-900/90 border border-slate-800 hover:border-rose-400/50 transition">
+            <div class="font-mono text-[10px] text-rose-400">KASUS LOKAL</div>
+            <div class="text-xs font-bold text-white mt-0.5">Tornado Rancaekek</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Simulation Workspace Grid -->
+      <div class="grid lg:grid-cols-12 gap-6 items-stretch">
+        <!-- Interactive Simulation Canvas (Left 8 cols) -->
+        <div class="lg:col-span-8 glass-panel rounded-2xl overflow-hidden flex flex-col">
+          <div class="px-4 py-3 border-b border-slate-800/90 bg-abyss-950/70 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span id="sim-canvas-mode-title" class="font-mono text-xs font-semibold text-slate-200">MODE: PENAMPANG VERTIKAL ATMOSFER (CROSS-SECTION)</span>
+            </div>
+            <div class="font-mono text-[11px] text-slate-400" id="sim-coriolis-badge">CORIOLIS: AKTIF (1250 KM DARI EKUATOR)</div>
+          </div>
+
+          <div class="relative w-full h-[360px] sm:h-[440px] lg:h-[480px] bg-abyss-950">
+            <canvas id="storm-sim-canvas" class="w-full h-full block"></canvas>
+
+            <!-- Floating Telemetry HUD inside Canvas Corner -->
+            <div class="absolute top-3 left-3 pointer-events-none flex flex-wrap gap-2">
+              <div class="px-3 py-1.5 rounded-lg bg-abyss-950/85 border border-slate-700/80 backdrop-blur-sm font-mono text-[11px]">
+                <span class="text-slate-400">TEKANAN:</span>
+                <strong id="hud-pressure" class="text-amber-300 ml-1">918 hPa</strong>
+              </div>
+              <div class="px-3 py-1.5 rounded-lg bg-abyss-950/85 border border-slate-700/80 backdrop-blur-sm font-mono text-[11px]">
+                <span class="text-slate-400">ANGIN:</span>
+                <strong id="hud-wind" class="text-sky-300 ml-1">248 km/jam</strong>
+              </div>
+            </div>
+
+            <!-- Eye of the Storm Callout Badge when active -->
+            <div id="eye-wall-pill" class="absolute bottom-3 right-3 pointer-events-none px-3 py-1.5 rounded-lg bg-sky-500/20 border border-sky-400/50 backdrop-blur-sm font-mono text-[11px] text-sky-200">
+              ◎ MATA BADAI TERDETEKSI (TENANG DI PUSAT)
+            </div>
+          </div>
+        </div>
+
+        <!-- Sliders & Live Telemetry Output Box (Right 4 cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-5">
+          <!-- Meteorological Sliders Card -->
+          <div class="glass-panel rounded-2xl p-5 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <h3 class="text-sm font-bold text-white uppercase tracking-wider">Parameter Atmosfer</h3>
+              <span class="font-mono text-[10px] text-sky-400">REAL-TIME PHYSICS</span>
+            </div>
+
+            <!-- Slider 1: SST -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <label for="slider-sst" class="font-semibold text-slate-200">1. Suhu Permukaan Air Laut</label>
+                <span id="val-sst" class="font-mono font-bold text-amber-400">31.2 °C</span>
+              </div>
+              <input id="slider-sst" type="range" min="22" max="32" step="0.1" value="31.2" class="telemetry-slider amber-slider" />
+              <div class="flex justify-between font-mono text-[10px] text-slate-500">
+                <span>22.0°C (Dingin)</span>
+                <span class="text-amber-400/90 font-semibold">▲ 26.5°C Ambang</span>
+                <span>32.0°C</span>
+              </div>
+            </div>
+
+            <!-- Slider 2: Humidity at 5 km -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <label for="slider-humidity" class="font-semibold text-slate-200">2. Kelembapan Troposfer (5 km)</label>
+                <span id="val-humidity" class="font-mono font-bold text-sky-400">96 %</span>
+              </div>
+              <input id="slider-humidity" type="range" min="30" max="100" step="1" value="96" class="telemetry-slider" />
+              <div class="flex justify-between font-mono text-[10px] text-slate-500">
+                <span>30% (Kering)</span>
+                <span>Cumulonimbus</span>
+                <span>100% (Jenuh)</span>
+              </div>
+            </div>
+
+            <!-- Slider 3: Distance from Equator (Coriolis) -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <label for="slider-coriolis" class="font-semibold text-slate-200">3. Jarak Ekuator (Efek Coriolis)</label>
+                <span id="val-coriolis" class="font-mono font-bold text-cyan-300">1250 km</span>
+              </div>
+              <input id="slider-coriolis" type="range" min="0" max="1500" step="25" value="1250" class="telemetry-slider" />
+              <div class="flex justify-between font-mono text-[10px] text-slate-500">
+                <span>0 km (Tanpa Putaran)</span>
+                <span class="text-cyan-400/90 font-semibold">▲ 500 km</span>
+                <span>1500 km</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Telemetry Output Box -->
+          <div class="glass-panel rounded-2xl p-5 flex-1 flex flex-col justify-between space-y-4 border-t-2 border-t-sky-400">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="font-mono text-[10px] uppercase tracking-widest text-sky-400">Output Telemetri Langsung</span>
+                <span id="sim-status-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-400/40">
+                  SUPER TOPAN / HURIKAN
+                </span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="rounded-xl bg-abyss-950/90 border border-slate-800 p-3">
+                  <div class="font-mono text-[10px] text-slate-400">TEKANAN PUSAT</div>
+                  <div id="out-pressure" class="font-mono text-xl font-black text-amber-400 mt-0.5">918 hPa</div>
+                </div>
+                <div class="rounded-xl bg-abyss-950/90 border border-slate-800 p-3">
+                  <div class="font-mono text-[10px] text-slate-400">ANGIN MAKSIMUM</div>
+                  <div id="out-wind" class="font-mono text-xl font-black text-sky-400 mt-0.5">248 km/j</div>
+                </div>
+              </div>
+
+              <div class="rounded-xl bg-abyss-950/75 border border-slate-800/90 p-3.5">
+                <div class="font-mono text-[10px] uppercase text-slate-400 mb-1">Analisis Proses Fisika Atmosfer:</div>
+                <p id="out-explanation" class="text-xs text-slate-300 leading-relaxed">
+                  Air laut hangat &gt; 26.5°C menguapkan kelembapan tinggi hingga 5 km, membentuk awan Cumulonimbus raksasa dan melepaskan panas laten. Pada jarak &gt; 500 km dari khatulistiwa, gaya Coriolis memutar sistem menjadi siklon matang dengan Mata Badai yang tenang di pusat tekanan rendah.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 03: DRAGGABLE & ZOOMABLE INTERACTIVE STORM MAP                -->
+  <!-- ===================================================================== -->
+  <section id="chapter-03" class="chapter-section py-20 sm:py-24 border-b border-slate-800/80 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+        <div>
+          <div class="font-mono text-xs tracking-widest uppercase text-amber-400 mb-2">03 / PETA LOKASI BADAI TERKINI &amp; HISTORIS</div>
+          <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Radar Sebaran Badai Global &amp; Nusantara</h2>
+          <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
+            Geser peta (<span class="text-sky-300 font-medium">drag</span>) dan perbesar (<span class="text-sky-300 font-medium">zoom</span>) untuk mengamati posisi badai aktif terkini, zona bebas siklon ±500 km di ekuator, serta rekor badai bersejarah.
+          </p>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex flex-wrap gap-2" id="map-filter-pills">
+          <button data-filter="all" class="map-filter-btn px-3.5 py-2 rounded-full text-xs font-semibold bg-sky-500 text-abyss-950 transition">
+            Semua Lokasi (6)
+          </button>
+          <button data-filter="active" class="map-filter-btn px-3.5 py-2 rounded-full text-xs font-semibold bg-abyss-900 border border-slate-800 text-slate-300 hover:border-sky-400/40 transition">
+            Monitoring Terkini (Aktif)
+          </button>
+          <button data-filter="historic" class="map-filter-btn px-3.5 py-2 rounded-full text-xs font-semibold bg-abyss-900 border border-slate-800 text-slate-300 hover:border-amber-400/40 transition">
+            Rekor Historis
+          </button>
+          <button data-filter="indonesia" class="map-filter-btn px-3.5 py-2 rounded-full text-xs font-semibold bg-abyss-900 border border-slate-800 text-slate-300 hover:border-rose-400/40 transition">
+            Fenomena Indonesia
+          </button>
+        </div>
+      </div>
+
+      <!-- Map + Inspector Grid -->
+      <div class="grid lg:grid-cols-12 gap-6 items-stretch">
+        <!-- Interactive Pan & Zoom Map Viewport (Left 8 cols) -->
+        <div class="lg:col-span-8 glass-panel rounded-2xl overflow-hidden flex flex-col">
+          <!-- Map Toolbar -->
+          <div class="px-4 py-3 bg-abyss-950/85 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2 font-mono text-[11px] text-slate-300">
+              <span class="inline-block w-2 h-2 rounded-full bg-sky-400"></span>
+              <span>GESER PETA UNTUK EKSPLORASI</span>
+              <span class="hidden sm:inline text-slate-600">|</span>
+              <span id="map-zoom-readout" class="hidden sm:inline text-sky-400">ZOOM: 1.85x</span>
+            </div>
+
+            <!-- Quick Focus & Zoom Controls -->
+            <div class="flex items-center gap-1.5">
+              <button id="focus-indo-btn" class="px-2.5 py-1.5 rounded-lg bg-abyss-900 hover:bg-abyss-800 border border-slate-700 font-mono text-[11px] text-sky-300 transition">
+                Fokus Indonesia
+              </button>
+              <button id="map-reset-btn" class="px-2.5 py-1.5 rounded-lg bg-abyss-900 hover:bg-abyss-800 border border-slate-700 font-mono text-[11px] text-slate-300 transition">
+                Reset Global
+              </button>
+              <button id="map-theme-btn" type="button" class="px-2.5 py-1.5 rounded-lg bg-abyss-900 hover:bg-abyss-800 border border-slate-700 font-mono text-[11px] text-slate-300 transition">Peta: Gelap</button>
+              <button id="map-zoom-in" aria-label="Perbesar Peta" class="w-8 h-8 rounded-lg bg-abyss-900 hover:bg-sky-500/20 border border-slate-700 text-white font-bold flex items-center justify-center transition">+</button>
+              <button id="map-zoom-out" aria-label="Perkecil Peta" class="w-8 h-8 rounded-lg bg-abyss-900 hover:bg-sky-500/20 border border-slate-700 text-white font-bold flex items-center justify-center transition">−</button>
+            </div>
+          </div>
+
+
+          <!-- Pencarian lokasi (Nominatim / OpenStreetMap) -->
+          <form id="map-search-form" class="flex items-center gap-2 px-4 py-2 bg-abyss-950/70 border-b border-slate-800">
+            <input id="map-search-input" type="text" autocomplete="off" placeholder="Cari lokasi di OpenStreetMap, mis. Magelang, Manila, Dhaka…" class="flex-1 min-w-0 rounded-lg bg-abyss-900 border border-slate-700 px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-400/60" />
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-abyss-950 font-mono text-[11px] font-bold transition">Cari</button>
+            <span id="map-search-status" class="hidden sm:inline font-mono text-[10px] text-slate-400"></span>
+          </form>
+
+          <!-- OpenStreetMap Stage -->
+          <div id="map-viewport" class="relative w-full h-[390px] sm:h-[470px] lg:h-[520px] bg-[#040914] overflow-hidden">
+            <div id="osm-map" class="osm-dark absolute inset-0"></div>
+
+            <!-- Floating Map Legend Bottom Left -->
+            <div style="z-index:1000" class="absolute bottom-3 left-3 pointer-events-none glass-panel rounded-xl px-3.5 py-2.5 text-[11px] font-mono space-y-1.5">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+                <span class="text-slate-200">Monitoring Terkini (Aktif)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                <span class="text-slate-200">Rekor Historis (Tip 1979 / Bhola 1970)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="text-slate-200">Fenomena Indonesia (Rancaekek)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-sm bg-amber-400/40 border border-amber-400"></span>
+                <span class="text-slate-200">Zona ±500 km Khatulistiwa</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Storm Inspector Panel & Quick List (Right 4 cols) -->
+        <div class="lg:col-span-4 flex flex-col gap-4">
+          <!-- Selected Storm Detailed Telemetry Inspector -->
+          <div id="storm-inspector-card" class="glass-panel rounded-2xl p-5 border-t-2 border-t-amber-400 space-y-4">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <span id="insp-category-badge" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase bg-rose-500/20 text-rose-300 border border-rose-400/40 mb-1.5">
+                  FENOMENA INDONESIA
+                </span>
+                <h3 id="insp-title" class="text-lg font-extrabold text-white leading-snug">
+                  Tornado Rancaekek, Jawa Barat
+                </h3>
+                <p id="insp-coords" class="font-mono text-xs text-sky-400 mt-0.5">6.96° S, 107.76° E • 21 Februari 2024</p>
+              </div>
+            </div>
+
+            <!-- Key Telemetry Metrics Grid -->
+            <div class="grid grid-cols-3 gap-2">
+              <div class="rounded-xl bg-abyss-950/90 border border-slate-800 p-2.5">
+                <div class="font-mono text-[9px] text-slate-400 uppercase">Tekanan</div>
+                <div id="insp-pressure" class="font-mono text-xs sm:text-sm font-bold text-amber-300 mt-0.5">~996 hPa</div>
+              </div>
+              <div class="rounded-xl bg-abyss-950/90 border border-slate-800 p-2.5">
+                <div class="font-mono text-[9px] text-slate-400 uppercase">Angin Puncak</div>
+                <div id="insp-wind" class="font-mono text-xs sm:text-sm font-bold text-sky-300 mt-0.5">110–140 km/j</div>
+              </div>
+              <div class="rounded-xl bg-abyss-950/90 border border-slate-800 p-2.5">
+                <div class="font-mono text-[9px] text-slate-400 uppercase">Skala / Status</div>
+                <div id="insp-scale" class="font-mono text-xs sm:text-sm font-bold text-rose-300 mt-0.5">EF1–EF2 Lokal</div>
+              </div>
+            </div>
+
+            <!-- Narrative & Impact Summary -->
+            <div class="space-y-2.5 text-xs text-slate-300 leading-relaxed">
+              <p id="insp-narrative">
+                Detik-detik fenomena tornado pertama yang tercatat secara visual dengan struktur pusaran awan corong (funnel cloud) di Indonesia. Terjadi akibat pertemuan massa udara lembab dan geser angin vertikal lokal yang kuat di wilayah Bandung–Sumedang.
+              </p>
+              <div class="rounded-xl bg-abyss-950/75 border border-slate-800/90 p-3">
+                <span class="font-mono text-[10px] uppercase text-amber-400 block mb-1">Ringkasan Dampak:</span>
+                <p id="insp-impact" class="text-slate-300">
+                  Pusaran angin ekstrem lokal merusak ratusan atap bangunan industri, rumah warga, menumbangkan pepohonan besar, dan memutus jaringan listrik setempat.
+                </p>
+              </div>
+              <button id="insp-news-btn" type="button" class="w-full mt-1 px-3 py-2 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-400/40 text-sky-200 font-mono text-[11px] font-semibold transition">Lihat berita terkait →</button>
+            </div>
+          </div>
+
+          <!-- Clickable Storm Directory List -->
+          <div class="glass-panel rounded-2xl p-4 flex-1 flex flex-col">
+            <div class="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-2.5 px-1">Daftar Titik Pantau Badai (Klik untuk Fokus):</div>
+            <div id="storm-list-container" class="space-y-2 overflow-y-auto max-h-[240px] pr-1"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 04: BERITA BADAI INDONESIA & DUNIA (GDELT DOC 2.0 API)        -->
+  <!-- ===================================================================== -->
+  <section id="chapter-04" class="chapter-section py-20 sm:py-24 border-b border-slate-800/80 relative">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-6">
+        <div class="font-mono text-xs tracking-widest uppercase text-sky-400 mb-2">04 / BERITA BADAI TERKINI</div>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Kabar Badai Indonesia &amp; Dunia</h2>
+        <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-3xl">Berita dimuat langsung dari API terbuka <span class="text-sky-300 font-medium">GDELT Project</span> (cadangan: Google News RSS via rss2json), lengkap dengan statistik pemberitaan real-time.</p>
+      </div>
+      <div class="gn-shell">
+        <div class="gn-top">
+          <div class="gn-brand">Berita <b>Badai</b></div>
+          <form id="news-form" class="gn-search">
+            <svg width="18" height="18" fill="none" stroke="#9aa0a6" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input id="news-keyword" type="text" autocomplete="off" placeholder="Cari berita, mis. puting beliung, Helene…" />
+            <button type="button" id="news-clear" class="text-slate-400 hover:text-white" aria-label="Hapus">✕</button>
+            <select id="news-timespan"><option value="24h">24 jam</option><option value="3d">3 hari</option><option value="1w" selected>1 minggu</option><option value="2w">2 minggu</option></select>
+          </form>
+        </div>
+        <nav class="gn-tabs" id="news-tabs">
+          <button type="button" data-feed="id" class="news-tab-btn">🇮🇩 Indonesia</button>
+          <button type="button" data-feed="world" class="news-tab-btn">🌏 Internasional</button>
+        </nav>
+        <div class="gn-body">
+          <div>
+            <div class="gn-list"><div id="news-grid"></div></div>
+            <button id="news-more" type="button" class="gn-pill mt-4 hidden">Tampilkan lebih banyak</button>
+          </div>
+          <aside>
+            <div class="gn-card">
+              <div class="flex gap-3 items-center">
+                <div class="w-11 h-11 rounded-lg bg-white flex items-center justify-center shrink-0"><svg width="26" height="26" fill="none" stroke="#111" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+                <div class="min-w-0"><div id="gn-side-title" class="font-semibold text-slate-100 leading-tight">Badai</div><div class="text-xs text-slate-400">Hasil penelusuran</div></div>
+              </div>
+              <button id="gn-save" type="button" class="gn-pill mt-4">☆ Simpan</button>
+            </div>
+            <div class="gn-card">
+              <div class="font-mono text-[10px] uppercase tracking-widest text-sky-400 mb-3">Statistik pemberitaan</div>
+              <div id="gn-stats" class="text-xs text-slate-400">Menunggu data…</div>
+            </div>
+            <a id="news-gnews-link" href="#" target="_blank" rel="noopener noreferrer" class="text-xs text-sky-400 hover:text-sky-300">Buka pencarian di Google News ↗</a>
+          </aside>
+        </div>
+        <div class="px-5 py-3 border-t border-[#2f3033] bg-[#111] font-mono text-[11px] text-slate-400"><span id="news-status">Menunggu…</span></div>
+      </div>
+
+      <div class="mt-10">
+        <div class="font-mono text-[10px] uppercase tracking-widest text-slate-400 mb-3">Sumber resmi pemantauan badai:</div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <a href="https://www.bmkg.go.id/" target="_blank" rel="noopener noreferrer" class="glass-panel glass-card-hover rounded-xl p-3.5 block"><div class="text-sm font-bold text-white">BMKG</div><div class="text-[11px] text-slate-400 mt-0.5">Peringatan cuaca &amp; siklon tropis Indonesia</div></a>
+          <a href="https://bnpb.go.id/" target="_blank" rel="noopener noreferrer" class="glass-panel glass-card-hover rounded-xl p-3.5 block"><div class="text-sm font-bold text-white">BNPB</div><div class="text-[11px] text-slate-400 mt-0.5">Data &amp; informasi bencana nasional</div></a>
+          <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener noreferrer" class="glass-panel glass-card-hover rounded-xl p-3.5 block"><div class="text-sm font-bold text-white">NHC / NOAA</div><div class="text-[11px] text-slate-400 mt-0.5">Hurikan Atlantik &amp; Pasifik Timur</div></a>
+          <a href="https://www.metoc.navy.mil/jtwc/jtwc.html" target="_blank" rel="noopener noreferrer" class="glass-panel glass-card-hover rounded-xl p-3.5 block"><div class="text-sm font-bold text-white">JTWC</div><div class="text-[11px] text-slate-400 mt-0.5">Topan Pasifik Barat &amp; Samudra Hindia</div></a>
+          <a href="https://www.gdacs.org/" target="_blank" rel="noopener noreferrer" class="glass-panel glass-card-hover rounded-xl p-3.5 block"><div class="text-sm font-bold text-white">GDACS</div><div class="text-[11px] text-slate-400 mt-0.5">Peringatan bencana global PBB/UE</div></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 04: DUALITY OF STORMS — DESTRUCTIVE IMPACT & GLOBAL HEALER    -->
+  <!-- ===================================================================== -->
+  <section id="chapter-05" class="chapter-section py-20 sm:py-24 border-b border-slate-800/80 telemetry-grid-bg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header + Interactive Comparison Toggle -->
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-10">
+        <div>
+          <div class="font-mono text-xs tracking-widest uppercase text-cyan-400 mb-2">05 / DAMPAK &amp; EKOLOGI ATMOSFER</div>
+          <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Dualitas Badai: Ancaman &amp; Penyembuh Global</h2>
+          <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
+            Selain membawa daya rusak bagi peradaban manusia, badai berperan sebagai mekanisme termoregulasi vital yang menjaga keseimbangan panas, air, dan nutrisi samudra Bumi.
+          </p>
+        </div>
+
+        <!-- View Mode Switcher -->
+        <div class="inline-flex rounded-xl bg-abyss-900 p-1 border border-slate-800 self-start">
+          <button data-duality="both" class="duality-btn px-3.5 py-2 rounded-lg text-xs font-semibold bg-sky-500 text-abyss-950 transition">
+            Berdampingan
+          </button>
+          <button data-duality="impact" class="duality-btn px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+            Dampak Destruktif (3)
+          </button>
+          <button data-duality="healer" class="duality-btn px-3.5 py-2 rounded-lg text-xs font-semibold text-slate-300 hover:text-white transition">
+            Penyembuh Global (6)
+          </button>
+        </div>
+      </div>
+
+      <!-- Dual Grid Container -->
+      <div id="duality-grid" class="grid lg:grid-cols-12 gap-8 items-start">
+        <!-- LEFT PANEL: 3 DESTRUCTIVE IMPACTS -->
+        <div id="duality-impact-col" class="lg:col-span-5 space-y-4">
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+              <h3 class="text-lg font-extrabold text-white">Dampak Terjadinya Badai</h3>
+            </div>
+            <span class="font-mono text-[11px] text-rose-400">3 RISIKO UTAMA</span>
+          </div>
+
+          <!-- Impact 1 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-5 border-l-4 border-l-rose-500 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-rose-400">01 // INFRASTRUKTUR &amp; JARINGAN</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-rose-500/15 text-rose-300 font-mono">FISIK</span>
+            </div>
+            <h4 class="text-base font-bold text-white">Kerusakan Infrastruktur &amp; Kelistrikan</h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Angin kencang ekstrem merusak rumah, gedung, jembatan, dan fasilitas publik. Batang pohon tumbang yang menimpa kabel melumpuhkan sistem kelistrikan serta jaringan telekomunikasi/internet.
+            </p>
+          </div>
+
+          <!-- Impact 2 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-5 border-l-4 border-l-amber-500 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-amber-400">02 // HIDROMETEOROLOGI</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-amber-500/15 text-amber-300 font-mono">BENCANA TURUNAN</span>
+            </div>
+            <h4 class="text-base font-bold text-white">Banjir Bandang &amp; Tanah Longsor</h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Presipitasi lebat berkelanjutan memicu banjir bandang di kawasan permukiman dataran rendah serta tanah longsor di wilayah perbukitan, merusak lahan pertanian dan memutus akses transportasi.
+            </p>
+          </div>
+
+          <!-- Impact 3 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-5 border-l-4 border-l-orange-500 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-mono text-xs font-bold text-orange-400">03 // SOSIAL &amp; EKONOMI</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-orange-500/15 text-orange-300 font-mono">KEMANUSIAAN</span>
+            </div>
+            <h4 class="text-base font-bold text-white">Krisis Sosial, Kesehatan &amp; Ekonomi</h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Mengancam keselamatan jiwa, menimbulkan cedera berat, memicu krisis air bersih dan kesehatan pasca-bencana, serta menghentikan rantai pasok perdagangan, komoditas pertanian, dan sektor perindustrian.
+            </p>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: 6 GLOBAL HEALER FUNCTIONS -->
+        <div id="duality-healer-col" class="lg:col-span-7 space-y-4">
+          <div class="flex items-center justify-between px-1">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+              <h3 class="text-lg font-extrabold text-white">6 Fungsi Penting Badai (Penyembuh Global)</h3>
+            </div>
+            <span class="font-mono text-[11px] text-emerald-400">HOMEOSTASIS BUMI</span>
+          </div>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <!-- Function 1 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-sky-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-sky-400 font-bold">FUNGSI 01</span>
+                <span class="text-slate-400">TERMODINAMIKA</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Distribusi Panas Global</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Mengatur suhu planet Bumi dengan memindahkan energi panas berlebih dari wilayah ekuator tropis yang panas menuju lintang tinggi di kutub yang dingin.
+              </p>
+            </div>
+
+            <!-- Function 2 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-cyan-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-cyan-400 font-bold">FUNGSI 02</span>
+                <span class="text-slate-400">AIR TAWAR</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Siklus Hidrologi</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Mendistribusikan cadangan air tawar dalam skala luas melalui curah hujan yang sangat penting bagi kelangsungan ekosistem daratan, waduk, dan lahan pertanian.
+              </p>
+            </div>
+
+            <!-- Function 3 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-emerald-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-emerald-400 font-bold">FUNGSI 03</span>
+                <span class="text-slate-400">KUALITAS UDARA</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Membersihkan Atmosfer</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Sirkulasi angin dan hujan menyapu polutan udara, partikel debu, serta membantu mendistribusikan kembali oksigen secara merata di lapisan troposfer.
+              </p>
+            </div>
+
+            <!-- Function 4 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-indigo-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-indigo-400 font-bold">FUNGSI 04</span>
+                <span class="text-slate-400">REGULASI LAUT</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Pendinginan Samudra</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Angin kencang mengaduk lapisan atas samudra sehingga mendinginkan permukaan laut yang terlalu panas, mengurangi akumulasi energi untuk badai berikutnya.
+              </p>
+            </div>
+
+            <!-- Function 5 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-amber-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-amber-400 font-bold">FUNGSI 05</span>
+                <span class="text-slate-400">ENERGI VERTIKAL</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Menstimulasi Konveksi</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Mendorong pertukaran energi panas laten dan kelembapan secara vertikal di atmosfer yang menjaga dinamika pembentukan awan dan sirkulasi angin global.
+              </p>
+            </div>
+
+            <!-- Function 6 -->
+            <div class="glass-panel glass-card-hover rounded-2xl p-4 sm:p-5 border-t-2 border-t-teal-400 space-y-2">
+              <div class="flex items-center justify-between font-mono text-[11px]">
+                <span class="text-teal-400 font-bold">FUNGSI 06</span>
+                <span class="text-slate-400">EKOSISTEM BAHARI</span>
+              </div>
+              <h4 class="text-sm sm:text-base font-bold text-white">Sirkulasi Nutrisi Laut</h4>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Gelombang dan arus badai mengaduk kolom air laut serta mengangkat nutrisi mineral dari dasar samudra (<em>upwelling</em>), mendukung mekarnya fitoplankton dan populasi ikan.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ STATISTIK RESMI BMKG OPEN DATA ============ -->
+      <div id="stats-dashboard" class="mt-16">
+        <!-- Header & Live API Controls -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="font-mono text-xs tracking-widest uppercase text-sky-400 font-bold">STATISTIK RESMI BMKG (OPEN DATA)</span>
+              <span id="st-status-badge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> LIVE BMKG
+              </span>
+            </div>
+            <h3 id="st-main-title" class="text-2xl sm:text-3xl font-black text-white tracking-tight">Monitoring Cuaca Ekstrem &amp; Dinamika Atmosfer</h3>
+            <p id="st-main-desc" class="text-xs text-slate-400 mt-1">Data observasi &amp; prakiraan real-time diambil langsung dari endpoint publik Badan Meteorologi, Klimatologi, dan Geofisika.</p>
+          </div>
+
+          <!-- Mode Switcher & Refresh Button -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex p-1 rounded-xl bg-abyss-900/90 border border-slate-800">
+              <button id="st-mode-weather" class="st-tab on flex items-center gap-1.5 text-xs">
+                <span>🌪️</span> Cuaca &amp; Angin BMKG
+              </button>
+              <button id="st-mode-quake" class="st-tab flex items-center gap-1.5 text-xs">
+                <span>⚡</span> Seismik &amp; Gempa TEWS
+              </button>
+            </div>
+            <button id="st-refresh-btn" title="Muat ulang data terkini langsung dari API BMKG" class="px-3 py-2 rounded-xl text-xs font-mono font-medium text-slate-300 bg-abyss-900 border border-slate-800 hover:border-sky-500 hover:text-sky-300 transition flex items-center gap-1.5">
+              <span id="st-refresh-icon">↻</span> <span>Refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metadata Status Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 mb-4 rounded-xl bg-abyss-900/50 border border-slate-800/80 text-[11px] font-mono text-slate-400">
+          <div class="flex items-center gap-3">
+            <span id="st-api-endpoint">Endpoint: <span class="text-sky-400">api.bmkg.go.id/publik/prakiraan-cuaca</span></span>
+            <span class="text-slate-600">•</span>
+            <span id="st-api-sync">Sinkronisasi: Memuat data…</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> 100% Data Riil BMKG</span>
+            <span class="text-slate-600 hidden sm:inline">•</span>
+            <span class="hidden sm:inline">Atribusi: BMKG Open Data</span>
+          </div>
+        </div>
+
+        <!-- Filter Lokasi Terpadu (Dropdown Lengkap & Akurat) -->
+        <div id="st-location-bar" class="mb-5 p-3.5 sm:p-4 rounded-2xl bg-abyss-900/90 border border-slate-800 shadow-xl">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <!-- Label & Status Terpilih -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              <span class="text-lg text-sky-400">📍</span>
+              <div>
+                <span id="st-loc-label" class="font-mono text-xs text-slate-300 font-bold uppercase tracking-wider">Wilayah Pantau:</span>
+                <span id="st-current-loc-badge" class="ml-2 font-mono text-[11px] px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-400/30 font-semibold">Semua Wilayah (Nasional)</span>
+              </div>
+            </div>
+
+            <!-- Dropdown Kebawah Pilihan Kota Lengkap -->
+            <div class="flex items-center gap-2 w-full md:w-auto">
+              <div class="relative w-full md:w-80">
+                <select id="st-city-dropdown" class="w-full appearance-none bg-slate-900/95 text-slate-100 border border-slate-700/80 rounded-xl px-3.5 py-2.5 pr-9 text-xs font-mono font-medium focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400 transition cursor-pointer shadow-inner">
+                  <!-- Diisi secara dinamis dengan optgroup pulau di stats.js -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-sky-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shortcut Akses Cepat Kota Utama -->
+          <div id="st-location-shortcuts" class="mt-3 pt-2.5 border-t border-slate-800/80 flex flex-wrap items-center gap-1.5">
+            <span class="font-mono text-[10px] text-slate-500 uppercase tracking-wider mr-1">Akses Cepat:</span>
+            <div id="st-location-buttons" class="flex flex-wrap items-center gap-1.5 overflow-x-auto pb-0.5"></div>
+          </div>
+        </div>
+
+        <!-- 4 KPI Cards -->
+        <div id="st-kpi" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4"></div>
+
+        <!-- Charts 1: Line & Bar -->
+        <div class="grid lg:grid-cols-2 gap-4">
+          <!-- Line Chart -->
+          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                <h4 id="st-line-title" class="font-bold text-white text-base">Tren Kecepatan Angin &amp; Suhu 24 Jam</h4>
+                <div id="st-years" class="flex flex-wrap gap-1"></div>
+              </div>
+              <p id="st-line-note" class="text-[11px] text-slate-400 font-mono mb-2"></p>
+            </div>
+            <div id="st-line" class="w-full"></div>
+          </div>
+
+          <!-- Bar Chart -->
+          <div class="glass-panel rounded-2xl p-5 flex flex-col justify-between">
+            <div>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                <h4 id="st-bars-title" class="font-bold text-white text-base">Perbandingan Parameter Antar Wilayah</h4>
+                <div id="st-bars-metric-tabs" class="flex gap-1.5">
+                  <button class="st-tab on" data-m="ws">Kec. Angin</button>
+                  <button class="st-tab" data-m="t">Suhu (°C)</button>
+                  <button class="st-tab" data-m="hu">Kelembapan</button>
+                </div>
+              </div>
+              <p id="st-bars-note" class="text-[11px] text-slate-400 font-mono mb-2"></p>
+            </div>
+            <div id="st-bars" class="flex items-end gap-2.5 sm:gap-3 h-[240px] pt-2"></div>
+          </div>
+        </div>
+
+        <!-- Charts 2: Donut & Comprehensive Table -->
+        <div class="grid lg:grid-cols-12 gap-4 mt-4">
+          <!-- Donut Card -->
+          <div class="glass-panel rounded-2xl p-5 lg:col-span-4 flex flex-col justify-between">
+            <div>
+              <h4 id="st-donut-title" class="font-bold text-white text-base mb-1">Distribusi Kondisi Cuaca</h4>
+              <p id="st-donut-note" class="text-[11px] text-slate-400 font-mono mb-3">Proporsi klasifikasi meteorologi</p>
+            </div>
+            <div id="st-donut"></div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="glass-panel rounded-2xl p-5 lg:col-span-8 overflow-x-auto">
+            <div class="flex items-center justify-between mb-3">
+              <h4 id="st-table-title" class="font-bold text-white text-base">Tabel Observasi &amp; Prakiraan Wilayah BMKG</h4>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Resmi BMKG</span>
+            </div>
+            <div id="st-table"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- CHAPTER 05: INTERACTIVE MITIGATION & DISASTER PREPAREDNESS            -->
+  <!-- ===================================================================== -->
+  <section id="chapter-06" class="chapter-section py-20 sm:py-24 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-10">
+        <div class="font-mono text-xs tracking-widest uppercase text-emerald-400 mb-2">06 / MITIGASI &amp; PENANGGULANGAN BENCANA</div>
+        <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">Protokol Kesiapsiagaan &amp; 5 Pilar Mitigasi</h2>
+        <p class="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
+          Penanggulangan bencana badai terbagi menjadi tiga fase krusial (Pra-Bencana, Saat Bencana, Pasca-Bencana) yang diperkuat oleh lima pilar mitigasi berkelanjutan.
+        </p>
+      </div>
+
+      <!-- Interactive 3-Phase Protocol + Emergency Bag Simulator Grid -->
+      <div class="grid lg:grid-cols-12 gap-6 items-start mb-12">
+        <!-- Left 7 Cols: Interactive 3-Phase Tab Switcher -->
+        <div class="lg:col-span-7 glass-panel rounded-2xl p-5 sm:p-6 space-y-5">
+          <!-- Phase Tabs -->
+          <div class="grid grid-cols-3 gap-2 bg-abyss-950/90 p-1.5 rounded-xl border border-slate-800" id="phase-tabs">
+            <button data-phase="pra" class="phase-tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold bg-sky-500 text-abyss-950 transition">
+              1. Pra-Bencana
+            </button>
+            <button data-phase="saat" class="phase-tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition">
+              2. Saat Bencana
+            </button>
+            <button data-phase="pasca" class="phase-tab-btn py-2.5 px-3 rounded-lg text-xs sm:text-sm font-bold text-slate-300 hover:text-white transition">
+              3. Pasca-Bencana
+            </button>
+          </div>
+
+          <!-- Dynamic Phase Content Area -->
+          <div id="phase-content-panel" class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span id="phase-subtitle" class="font-mono text-[11px] uppercase tracking-wider text-sky-400">FASE PERSIAPAN &amp; PENCEGAHAN</span>
+                <h3 id="phase-title" class="text-xl font-extrabold text-white mt-0.5">Sebelum Badai Terjadi</h3>
+              </div>
+              <span id="phase-code" class="px-3 py-1 rounded-lg bg-sky-500/15 border border-sky-400/30 font-mono text-xs text-sky-300">SIAGA 01</span>
+            </div>
+
+            <div id="phase-steps-list" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Interactive "Tas Siaga Bencana" Checklist Widget -->
+        <div class="lg:col-span-5 glass-panel rounded-2xl p-5 sm:p-6 space-y-4 border-t-2 border-t-amber-400">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="font-mono text-[10px] uppercase tracking-widest text-amber-400">Simulasi Kesiapan Keluarga</span>
+              <h3 class="text-lg font-extrabold text-white">Checklist Tas Siaga Bencana</h3>
+            </div>
+            <span id="bag-percent-badge" class="font-mono text-sm font-black px-3 py-1 rounded-lg bg-abyss-950 border border-amber-400/40 text-amber-300">0%</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="space-y-1.5">
+            <div class="w-full h-2.5 rounded-full bg-abyss-950 overflow-hidden border border-slate-800">
+              <div id="bag-progress-bar" class="h-full bg-gradient-to-r from-amber-500 via-sky-400 to-emerald-400 transition-all duration-300" style="width: 0%;"></div>
+            </div>
+            <div class="flex justify-between font-mono text-[11px] text-slate-400">
+              <span id="bag-status-text">Klik perlengkapan di bawah untuk mengemas tas</span>
+              <span id="bag-count-text">0 / 7 Item</span>
+            </div>
+          </div>
+
+          <!-- Checklist Items -->
+          <div id="emergency-bag-items" class="space-y-2"></div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800">
+            <button id="bag-reset-btn" class="px-3 py-2 rounded-lg bg-abyss-950 hover:bg-abyss-800 border border-slate-800 text-xs font-mono text-slate-400 hover:text-white transition">
+              Kosongkan Tas
+            </button>
+            <button id="bag-pack-all-btn" class="px-3.5 py-2 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-xs font-mono font-semibold text-emerald-300 transition">
+              Kemas Semua (100%)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 Mitigation Pillars Section (Slide 19) -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-extrabold text-white">5 Pilar Utama Mitigasi Badai</h3>
+          <span class="font-mono text-xs text-slate-400">KERANGKA KETAHANAN BENCANA</span>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          <!-- Pillar 1 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-4 space-y-2">
+            <div class="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-400/30 flex items-center justify-center font-mono text-xs font-bold text-sky-300">01</div>
+            <h4 class="text-sm font-bold text-white">Monitoring Sistem</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">Pemantauan radar cuaca, satelit atmosfer, dan peringatan dini resmi BMKG secara berkelanjutan.</p>
+          </div>
+          <!-- Pillar 2 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-4 space-y-2">
+            <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 flex items-center justify-center font-mono text-xs font-bold text-amber-300">02</div>
+            <h4 class="text-sm font-bold text-white">Penguatan Struktur Bangunan</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">Memperkuat konstruksi atap rumah, sambungan rangka, dan bangunan agar tahan terpaan angin kencang.</p>
+          </div>
+          <!-- Pillar 3 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-4 space-y-2">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-400/30 flex items-center justify-center font-mono text-xs font-bold text-emerald-300">03</div>
+            <h4 class="text-sm font-bold text-white">Pengelolaan Lingkungan</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">Pemangkasan dahan pohon tua di dekat jaringan listrik/rumah serta menjaga drainase pencegah banjir.</p>
+          </div>
+          <!-- Pillar 4 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-4 space-y-2">
+            <div class="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-400/30 flex items-center justify-center font-mono text-xs font-bold text-orange-300">04</div>
+            <h4 class="text-sm font-bold text-white">Penyusunan Tas Siaga Bencana</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">Menyiapkan logistik darurat mandiri (air, pangan, P3K, senter, dokumen) yang mudah diraih saat evakuasi.</p>
+          </div>
+          <!-- Pillar 5 -->
+          <div class="glass-panel glass-card-hover rounded-2xl p-4 space-y-2 sm:col-span-2 lg:col-span-1">
+            <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center font-mono text-xs font-bold text-cyan-300">05</div>
+            <h4 class="text-sm font-bold text-white">Simulasi Evakuasi &amp; Kontinjensi</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">Latihan jalur evakuasi keluarga/komunitas menuju tempat berlindung permanen yang aman dan terkoordinasi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- FOOTER & ARCHIVE CREDITS                                              -->
+  <!-- ===================================================================== -->
+  <footer class="bg-abyss-950 py-14 text-slate-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <div class="grid md:grid-cols-12 gap-8 pb-8 border-b border-slate-800/80">
+        <!-- Project Attribution -->
+        <div class="md:col-span-5 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
+            <span class="font-mono text-xs uppercase tracking-widest text-sky-400">METEOROLOGICAL DOCUMENTARY ARCHIVE</span>
+          </div>
+          <h3 class="text-xl font-black text-white">BADAI: KRONOLOGI &amp; SIMULASI ATMOSFER</h3>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Karya edukasi interaktif yang disusun berdasarkan materi presentasi sains <strong class="text-slate-200">“Bencana Alam Badai”</strong> oleh <strong class="text-sky-300">Kelompok 7</strong>.
+          </p>
+        </div>
+
+        <!-- Kelompok 7 Members -->
+        <div class="md:col-span-4 space-y-2.5">
+          <div class="font-mono text-xs uppercase tracking-wider text-amber-400">Anggota Kelompok 7</div>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-300">
+            <li>• Mu'addib Al Ghofary</li>
+            <li>• Jhosua Febrian</li>
+            <li>• Alexander Sibuea</li>
+            <li>• Mahawira Dzakie</li>
+            <li>• Suryono</li>
+            <li>• Dharu Dwi Satria</li>
+            <li>• Raafid Akbar</li>
+          </ul>
+        </div>
+
+        <!-- Reference Sources -->
+        <div class="md:col-span-3 space-y-2.5">
+          <div class="font-mono text-xs uppercase tracking-wider text-cyan-400">Sumber Referensi</div>
+          <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">BMKG</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">GDACS</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">WHO</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">Wikipedia</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">Radar Cianjur</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">IlmuGeografi.com</span>
+            <span class="px-2.5 py-1 rounded-md bg-abyss-900 border border-slate-800 text-slate-300">National Oceanographic</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-slate-500">
+        <span>© 2026 Kelompok 7 — Dokumentasi Interaktif Bencana Alam Badai</span>
+        <a href="#chapter-01" class="text-sky-400 hover:text-sky-300 transition">Kembali ke Atas ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+
+  <!-- Script per fitur (urutan penting: map.js sebelum news.js) -->
+  <script src="js/nav.js"></script>
+  <script src="js/factors.js"></script>
+  <script src="js/hero.js"></script>
+  <script src="js/simulation.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/duality.js"></script>
+  <script src="js/mitigation.js"></script>
+  <script src="js/news.js?v=2"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/stats.js?v=2"></script>
+</body>
+</html>
